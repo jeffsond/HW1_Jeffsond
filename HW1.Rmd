@@ -1,0 +1,366 @@
+---
+title: "Homework Assignment 1"
+author: Jeff Sondheimer and Danielle Bidigare
+date: 'Assigned: Oct 24, 2020, Due Sun Nov 01, 2020 11:59PM'
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+## HW-1 Instructions
+
+> Our class emphasizes clear communication of data analysis results to non-technical audiences. I expect your HTML output documents to be readable and well formatted. I expect you to put ample comments in your R code to make the code understandable. Along with accuracy of results, I am looking for quality of presentation as well. This homework is due by **11:59PM on Nov 01st**.  To complete this assignment, follow these steps:
+
+1. Create a new RStudio Project for this HW. Sync the project directory with a GitHub Repository (see instructions on Canvas on how to do that). 
+
+2. Download the `HW1.Rmd` file from Canvas. Save the file in the RStudio Project Directory. 
+
+3. Open `HW1.Rmd` in RStudio. Replace the "Your Name Here" text in the `author:` field with your name.
+
+4. Supply your solutions to the homework by editing `HW1.Rmd`.
+
+5. Run your code in the Console and Knit HTML frequently to check for errors.
+
+6. You may find it easier to solve a problem by interacting only with the Console at first. 
+
+7. When you have completed the homework please check that your knits correctly when you click `Knit HTML`.
+
+8. "Push" all your local changes to the GitHub Repo for the project.
+
+9. Submit your RMD file, the HTML output and a link to your GitHub Repo on Canvas.
+
+
+
+## Data frame basics
+
+We will continue working with the nycflights dataset we looked at in class. **Please be sure to keep the data file in the same directory as the RMD file - your project directory.**
+
+First - make sure that you are reading the data correctly and doing all the data cleaning steps that we did in class. Feel free to go beyond our class work in cleaning the data if you feel the need. 
+
+I now would like you to answer the following - all in their own separate R code blocks.
+
+```{r}
+# Read the proper data set
+
+nyc<- read.csv("nycflights.csv")
+
+# Explore the data
+str(nyc)
+
+# Delete the column named "X"
+nyc$X <- NULL
+
+# Reassign columns as factors as needed:
+nyc$carrier <- as.factor(nyc$carrier)
+nyc$flight <- as.factor(nyc$flight)
+nyc$tailnum <- as.factor(nyc$tailnum)
+nyc$origin <- as.factor(nyc$origin)
+nyc$dest <- as.factor(nyc$dest)
+
+# Re-check str
+str(nyc)
+
+```
+
+### Data Exploration
+
+Let's first do some simple exploration of this data. I would like for you to answer each of the questions below with an **inline R code** integrated into the text and not in a separate R code block.
+
+- How many airlines are there? (Hint: `levels` and `length` can be useful here)
+```{r}
+
+Total_Numb_of_Airlines<- length(levels(nyc$carrier))
+
+
+```
+The total number of airlines is `r Total_Numb_of_Airlines`.
+
+
+- How many flights there were by the airline with code `OO`? (Hint: `nrow` can be useful here along with logical indexing)
+
+```{r}
+
+Numb_of_OO<- nrow(nyc[nyc$carrier=="OO",])
+
+```
+The number of flights with the code OO is `r Numb_of_OO`.
+
+
+- How long is the shortest flight out of any NYC airport? (Hint: `min` can be useful, remember to handle `NA` values)
+
+```{r}
+
+Shortest_flight<- min(nyc$air_time, na.rm=TRUE)
+
+```
+The shortest flight out of any NYC airport is `r Shortest_flight` minutes.
+
+
+- How many flights where there by United Airlines (code: UA) on Jan 12th 2013?
+
+```{r}
+
+UA_flights_on_1.12.2013<- nrow(nyc[nyc$carrier=="UA" & nyc$year== 2013 & nyc$month== 1 & nyc$day== 12,])
+
+
+```
+
+The number of flights bby United Airlines on Jan 12th, 2013 was `r UA_flights_on_1.12.2013`.
+
+### Arrival Delay
+
+Lets focus on Arrival Delay.
+
+- What was the average arrival delay for all airports and all airlines combined in Jan 2013? 
+
+```{r}
+Nyc_avg_arr_delay_1.2013<- mean(nyc$arr_delay[nyc$year==2013 & nyc$month==1 ], na.rm=TRUE)
+
+
+
+```
+
+
+- Whats was the median arrival delay for all airports and all airlines combined in Jan 2013?
+
+```{r}
+Nyc_median_arr_delay_1.2013<- median(nyc$arr_delay[ nyc$year==2013 & nyc$month==1 ], na.rm=TRUE)
+
+nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1,] 
+
+
+```
+
+
+Based on your answers to the two questions above, what can you say about the distribution of arrival delays? Provide your answer in a text paragraph form.
+
+
+### Airline Performance
+
+Lets see if all airlines are equally terrible as far as flight arrival delays are concerned. For this question you will have to make sure that airline column is coded as a factor.
+
+- Calculate average arrival delays by airline (Hint: look up the command `tapply`)
+
+```{r}
+
+arr_delay_by_airline<- round(tapply(nyc$arr_delay,nyc$carrier, mean, na.rm=TRUE), 2)
+
+sort(arr_delay_by_airline, decreasing = TRUE)
+
+```
+
+- Draw a Bar Plot of Average Arrival Delays for all the Airlines (Hint: command for making a Bar Plot is simply `barplot`)
+
+Here is a barplot of the average arrival delays from above: 
+```{r}
+
+barplot(sort(arr_delay_by_airline, decreasing = TRUE),las = 2)
+
+#las =2 is horiz
+
+```
+##How do I display each airline?
+
+
+
+- Which airline has the highest average arrival delay? Which airline has the smallest average arrival delay? Are there airlines that actually have negative average delay? Provide answer to this question in a text paragraph form using **inline R code**.
+
+```{r}
+
+max_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline==max(arr_delay_by_airline)])
+arr_delay_by_airline
+
+min_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline==min(arr_delay_by_airline)])
+##should I only include positive values here?
+
+neg_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline<0])
+
+```
+
+The airline with the highest average arrival delay is `r max_delay_airline`, while the airline with the smallest average arrival delay is `r min_delay_airline`. There are airlines with negative average arrival delays and they are `r neg_delay_airline[1]` and `r neg_delay_airline[2]`
+
+#How do I put an "and" between the output names? 
+
+### Air Gain
+
+Create a new column named airgain such that airgain = (departure delay - arrival delay) : this is the amount of delay a flight made up while in air.
+
+
+
+a) Explore airgain data - calculate suitable descriptive statistics and appropriate graphics to better understand this data. This part is open ended - you do what you feel works best for you.
+
+```{r}
+
+nyc$airgain<- nyc$dep_delay-nyc$arr_delay
+
+str(nyc$airgain)
+head(nyc$airgain)
+summary(nyc$airgain)
+hist(nyc$airgain)
+
+
+```
+
+b) Answer the questions:
+
+  - do airlines actually gain any time when in air on average?
+  
+```{r}
+Avg_airgain<- mean(nyc$airgain, na.rm=TRUE)
+
+```
+  Overall, the airlines gain an average of `r Avg_airgain` minutes when in the air.
+
+  - Calculate average airgain for different airlines - which airlines do a better job, which do a worse job? 
+  
+```{r}
+Avg_airgain_by_airline<- round(tapply(nyc$airgain,nyc$carrier, mean, na.rm=TRUE), 2)
+
+Max_airgain<- names(Avg_airgain_by_airline[Avg_airgain_by_airline==max(Avg_airgain_by_airline)])
+
+Min_airgain<- names(Avg_airgain_by_airline[Avg_airgain_by_airline==min(Avg_airgain_by_airline)])
+
+sort(Avg_airgain_by_airline)
+
+```
+  
+The airline with the best airgain is `r Max_airgain`, while the airline with the worst airgain is `r Min-airgain`.
+
+  - Build a graphic  of average airgain for different airlines sorted by airgain. We want to graphically visualize which airlines are good at "catching up" when in air and which airlines actually lose time further after taking off.
+  
+```{r}
+
+barplot(sort(Avg_airgain_by_airline))
+
+```
+
+
+That's it. Once you are done, make sure everything works and knits well and then you can push your changes to the GitHub repo and uplaod the RMD flile and the html output to Canvas.
+
+**Have Fun!**
+
+Sanjeev
+
+
+```{r
+nyc <- read.csv("nycflights.csv")
+nyc <- read.csv("nycflights.csv")
+View(nyc)
+help("levels")
+View(nyc)
+load.csv(nyc)
+nyc<- read.csv("nycflights.csv")
+level(nyc$carrier)
+levels(nyc$carrier)
+length(nyc$carrier)
+names(nyc$carrier)
+help(length)
+nyc$carrier<- as.factor(nyc$carrier)
+levels(nyc$carrier)
+length(levels(nyc$carrier))
+nyc[nyc$carrier=="OO",]
+nrow(nyc[nyc$carrier=="OO",])
+min(nyc[nyc$air_time,])
+min(nyc$air_time)
+min(nyc$air_time, na.rm=TRUE)
+help("as.factor")
+length(levels(nyc$carrier))
+nrow(nyc[nyc$carrier=="OO",])
+Numb_of_OO<- nrow(nyc[nyc$carrier=="OO",])
+Numb_of_OO<- (nyc[nyc$carrier=="OO",]
+nrow(Numb_of_OO)
+nrow(Numb_of_OO)
+Numb_of_OO<- nyc[nyc$carrier=="OO",]
+nrow(Numb_of_OO)
+Numb_of_OO
+Numb_of_OO<- nyc[nyc$carrier=="OO",]
+nrow(Numb_of_OO)
+Numb_of_OO
+nrow(Numb_of_OO<- nyc[nyc$carrier=="OO",])
+Numb_of_OO<- nrow(nyc[nyc$carrier=="OO",])
+nyc[nyc$carrier=="OO",]
+Numb_of_OO<- nrow(nyc[nyc$carrier=="OO",])
+nyc[nyc$carrier=="OO",]
+Numb_of_OO<- nrow(nyc[nyc$carrier=="OO",])
+nrow(nyc[nyc$carrier=="OO",])
+min(nyc$air_time, na.rm=TRUE)
+nrow(nyc$carrier=="UA" & nyc$year=="2013")
+nrow(nyc$carrier=="UA" & nyc$year==2013)
+nrow(nyc$carrier=="UA")
+nrow(nyc[nyc$carrier=="UA"])
+nrow(nyc[nyc$carrier=="UA",])
+nrow(nyc[nyc$carrier=="UA" & nyc$year=='2013',])
+nrow(nyc[nyc$carrier=="UA" & nyc$year==2013,])
+nrow(nyc[nyc$carrier=="UA" & nyc$year==2013 & nyc$month==1 ,])
+nrow(nyc[nyc$carrier=="UA" & nyc$year==2013 & nyc$month==1 & nyc$day== 12,])
+UA_flights_on_1.12.2013<- nrow(nyc[nyc$carrier=="UA" & nyc$year== 2013 & nyc$month== 1 & nyc$day== 12,])
+mean(nyc[nyc$arr_delay],)
+mean(nyc$arr_delay)
+mean(nyc$arr_delay, na.rm=TRUE)
+mean(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1 ] na.rm=TRUE)
+mean(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1 ], na.rm=TRUE)
+mean(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ], na.rm=TRUE)
+nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ]
+Nyc_arr_delay_1.2013<- nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ]
+mean(Nyc_arr_delay_1.2013, na.rm=TRUE)
+help(mean)
+Nyc_arr_delay_1.2013<- mean(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ], na.rm=TRUE)
+Nyc_median_arr_delay_1.2013<- mean(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ], na.rm=TRUE)
+Nyc_median_arr_delay_1.2013<- median(nyc[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ], na.rm=FALSE)
+Nyc_avg_arr_delay_1.2013<- mean(nyc$arr_delay[nyc$arr_delay & nyc$year==2013 & nyc$month==1, ], na.rm=TRUE)
+Nyc_avg_arr_delay_1.2013<- mean(nyc$arr_delay[nyc$year==2013 & nyc$month==1, ], na.rm=TRUE)
+arr_delay_by_airline<- round(tapply(nyc$arr_delay,nyc$carrier, mean, na.rm=TRUE), 3)
+sort(arr_delay_by_airline, decreasing = TRUE)
+```{r}
+sort(arr_delay_by_airline, decreasing = TRUE)
+sort(arr_delay_by_airline, decreasing = TRUE)
+barplot(sort(arr_delay_by_airline, decreasing = TRUE))
+barplot(sort(arr_delay_by_airline, decreasing = TRUE)
++ main= "Avg Arrival Delay by Airline")
+barplot(sort(arr_delay_by_airline, decreasing = TRUE)
++ main = "Avg Arrival Delay by Airline")
+barplot(sort(arr_delay_by_airline, decreasing = TRUE)
++ main = "Avg Arrival Delay by Airline")
+barplot(sort(arr_delay_by_airline, decreasing = TRUE)
++main = "Avg Arrival Delay by Airline")
+barplot(sort(arr_delay_by_airline, decreasing = TRUE)
++main = Avg Arrival Delay by Airline)
+barplot(sort(arr_delay_by_airline, decreasing = TRUE))
+max_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline==max(arr_delay_by_airline)])
+help(max)
+min_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline==min(arr_delay_by_airline)])
+neg_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline=<0])
+neg_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline<=0])
+neg_delay_airline<-names(arr_delay_by_airline[arr_delay_by_airline<0])
+min_delay_airline
+value(min_delay_airline)
+neg_delay_airline
+nyc$airgain<- nyc$dep_delay-nyc$arr_delay
+str(nyc$airgain)
+head(nyc$airgain)
+summary(nyc$airgain)
+summary(nyc[nyc$airgain, nyc$carrier],)
+summary(nyc[nyc$airgain & nyc$carrier],)
+Avg_airgain_by_airline<- round(tapply(nyc$airgain,nyc$carrier, mean, na.rm=TRUE), 2)
+Avg_airgain_by_airline
+barplot(sort(Avg_airgain_by_airline, decreasing=TRUE))
+Avg_airgain_by_airline<- round(tapply(nyc$airgain,nyc$carrier, mean, na.rm=TRUE), 2)
+mean(airgain, na.rm=TRUE)
+mean(nyc$airgain, na.rm=TRUE)
+Max_airgain<- names(Avg_airgain_by_airline[Avg_airgain_by_airline==max(Avg_airgain_by_airline)])
+Min_airgain<- names(Avg_airgain_by_airline[Avg_airgain_by_airline==min(Avg_airgain_by_airline)])
+Max_airgain
+Min_airgain
+barplot(sort(Avg_airgain_by_airline))
+help(levels)
+help(length)
+Total_Numb_of_Airlines
+Total_Numb_of_Airlines<- length(levels(nyc$carrier))
+Total_Numb_of_Airlines
+
+```
+
+
+
